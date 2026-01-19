@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -46,6 +47,7 @@ def get_batch(split):
     ix = torch.randint(len(data) - block_size, (batch_size,))
     x = torch.stack([data[i:i+block_size] for i in ix])
     y = torch.stack([data[i+1:i+block_size+1] for i in ix])
+    x, y = x.to(device), y.to(device)
     return x, y
 
 
@@ -154,7 +156,7 @@ class BigramLanguageModel(nn.Module):
         
         # idx and targets are both (B, T) tensor of integers
         tok_emb = self.token_embedding_table(idx) # (B, T, C) batch: 8, time: 4, channel: 65 (vocab_size)
-        pos_emb = self.position_embedding_table(torch.arange(T, device=device))
+        pos_emb = self.position_embedding_table(torch.arange(T, device=idx.device))
         x = tok_emb + pos_emb # (B, T, C)
         x = self.blocks(x) # apply one head of self-attention (B, T, C)
         logits = self.lm_head(x) # (B,T,vocab_size)
@@ -186,28 +188,46 @@ class BigramLanguageModel(nn.Module):
             # append sampled index to the running sequence
             idx = torch.cat((idx, idx_next), dim=1) # (B, T+1)
         return idx
-    
-model = BigramLanguageModel()
-m = model.to(device)    
+    import os
 
-# create a PyTorch optimizer
+ckpt_path = "bigram_checkpoint.pt"
+
+model = BigramLanguageModel().to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
+if os.path.exists(ckpt_path):
+    ckpt = torch.load(ckpt_path, map_location=device)
+    model.load_state_dict(ckpt["model_state_dict"])
+    model.eval()
+    print("Loaded checkpoint, skipping training.")
+else:
+    print(f"Running with {device}, training...")
+    for iter in range(max_iters):
 
-for iter in range(max_iters):
-    
-    if iter % eval_iters == 0:
-        losses = estimate_loss()
-        print(f"step {iter}: train loss {losses["train"]:.4f}, val loss {losses["val"]:.4f}")
-        
-    # sample a batch of data
-    xb, yb = get_batch("train")
-    
-    #evaluate the loss
-    logits, loss = model(xb, yb)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+        if iter % eval_interval == 0:
+            losses = estimate_loss()
+            print(f"step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
 
+        xb, yb = get_batch("train")
+        logits, loss = model(xb, yb)
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        optimizer.step()
+
+    torch.save({
+        "model_state_dict": model.state_dict(),
+        "stoi": stoi,
+        "itos": itos,
+        "vocab_size": vocab_size,
+        "block_size": block_size,
+        "n_embd": n_embd,
+        "n_head": n_head,
+        "n_layer": n_layer,
+        "dropout": dropout,
+    }, ckpt_path)
+
+    model.eval()
+
+# generate
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
+print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
