@@ -16,6 +16,32 @@ The model is a decoder-only transformer with:
 
 It's trained character-by-character, so it learns everything from scratch — no pretrained weights, no tokenizer.
 
+## Setup
+
+**1. Create and activate a virtual environment**
+
+```bash
+python -m venv .venv
+```
+
+On Windows:
+```bash
+.venv\Scripts\activate
+```
+
+On Mac/Linux:
+```bash
+source .venv/bin/activate
+```
+
+**2. Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+A GPU is recommended but not required — the model automatically falls back to CPU.
+
 ## Usage
 
 ```bash
@@ -23,8 +49,6 @@ python bigram.py
 ```
 
 On first run, it trains for 5000 steps and saves a checkpoint (`bigram_checkpoint.pt`). On subsequent runs it loads the checkpoint and jumps straight to generation.
-
-**Requirements:** Python, PyTorch, and a GPU is recommended (falls back to CPU automatically).
 
 ## Training data
 

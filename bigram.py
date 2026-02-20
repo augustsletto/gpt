@@ -228,6 +228,11 @@ else:
 
     model.eval()
 
+MAX_NEW_TOKENS = 1000 # change based on how long tet you want to generate
+
 # generate
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
+output = decode(model.generate(context, max_new_tokens=1000)[0].tolist())
+print(output)
+with open("output.txt", "w", encoding="utf-8") as f:
+    f.write(output)
