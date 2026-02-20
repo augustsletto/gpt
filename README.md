@@ -66,6 +66,8 @@ Higher values produce more text; lower values produce less.
 
 The [Tiny Shakespeare](https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt) dataset — a collection of Shakespeare's works concatenated into a single text file (~1.1M characters). Download it and save it as `input.txt` in the project directory.
 
+The ```input.txt``` could be changed to any text file, and the model would be trained on that. 
+
 ## Sample output
 
 ```
