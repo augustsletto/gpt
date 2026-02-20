@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 If you dismiss this sword of your news,
 Why else we best now a gentleman
 Of their arms and friends, and will have it so.
@@ -33,3 +34,5 @@ And smacks the stand for his scolding dishonour.
 KING RICHARD III:
 Then learn, and let me be tedility's,
 D
+=======
+>>>>>>> b258fc5dc8056c8afd126bcbe92e62804b8e1e15
